@@ -1,4 +1,6 @@
-from pydantic_settings import SettingsConfigDict, BaseSettings  
+from pydantic_settings import SettingsConfigDict, BaseSettings
+
+from apps.users.auth_jwt import SECRET_KEY  
 
 
 
@@ -8,6 +10,9 @@ class Settings(BaseSettings):
     DB_PORT: int
     DB_HOST: str
     DB_PASS: str
+
+    SECRET_KEY: str
+    HASH: str
 
     @property
     def DATABASE_URL_asyncpg(self):
