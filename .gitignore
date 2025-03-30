@@ -63,9 +63,7 @@ dist/
 *.spec
 
 # Alembic (FastAPI Migrations)
-migrations/
 migrations/versions/
-**/migrations/
 **/migrations/versions/
 
 # Local config
