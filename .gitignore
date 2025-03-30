@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+*.log
+
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# VS Code
+.vscode/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# SQLite
+*.sqlite3
+
+# Pydantic
+__pydantic_cache__/
+
+# IDE
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# macOS
+.DS_Store
+
+# Docker
+*.pid
+docker-compose.override.yml
+
+# Test artifacts
+coverage.xml
+*.cover
+*.log
+nosetests.xml
+test-results/
+
+# Build
+build/
+dist/
+*.spec
+
+# Alembic (FastAPI Migrations)
+migrations/
+migrations/versions/
+**/migrations/
+**/migrations/versions/
+
+# Local config
+*.local
