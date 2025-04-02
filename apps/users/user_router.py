@@ -73,7 +73,7 @@ async def login(payload: UserLoginSchema, request: Request, db: AsyncSession = D
     if not user or not await verify_password(payload.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    access_token = await create_token({"sub": user.username}, expires_delta=timedelta(days=1))
+    access_token = await create_token({"sub": user.username}, expires_delta=timedelta(minutes=5))
     refresh_token = await create_token({"sub": user.username}, expires_delta=timedelta(days=30))
 
     user_agent, ip = await extract_client_info(request)
@@ -93,30 +93,30 @@ async def login(payload: UserLoginSchema, request: Request, db: AsyncSession = D
     }
 
 
-@router.post("/refresh")
-async def refresh_token(request: Request, db: AsyncSession = Depends(get_db_session)):
-    try:
-        body = await request.json()
-        token = body.get("refresh_token")
-        if not token:
-            raise HTTPException(status_code=400, detail="Missing refresh_token")
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON")
+# @router.post("/refresh")
+# async def refresh_token(request: Request, db: AsyncSession = Depends(get_db_session)):
+#     try:
+#         body = await request.json()
+#         token = body.get("refresh_token")
+#         if not token:
+#             raise HTTPException(status_code=400, detail="Missing refresh_token")
+#     except Exception:
+#         raise HTTPException(status_code=400, detail="Invalid JSON")
 
-    payload = await decode_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
+#     payload = await decode_token(token)
+#     if not payload:
+#         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-    sessions_user = select(Session).where(Session.refresh_token == token, Session.is_active == True)
-    result = await db.execute(sessions_user)
-    session = result.scalars().first()
+#     sessions_user = select(Session).where(Session.refresh_token == token, Session.is_active == True)
+#     result = await db.execute(sessions_user)
+#     session = result.scalars().first()
 
-    if not session:
-        raise HTTPException(status_code=403, detail="Session not found or expired")
+#     if not session:
+#         raise HTTPException(status_code=403, detail="Session not found or expired")
 
-    access_token = await create_token({"sub": payload["sub"]}, expires_delta=timedelta(days=1))
+#     access_token = await create_token({"sub": payload["sub"]}, expires_delta=timedelta(days=1))
 
-    return {"access_token": access_token}
+#     return {"access_token": access_token}
 
 
 @router.get("/devices")

@@ -7,8 +7,6 @@ import os
 
 load_dotenv()
 
-
-
 SECRET_KEY = os.getenv("SECRET_KEY")
 HASH = os.getenv("HASH")
 
@@ -38,3 +36,4 @@ async def decode_token(token: str) -> dict:
         return jwt.decode(token, SECRET_KEY, algorithms=[HASH])
     except JWTError:
         return None
+

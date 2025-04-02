@@ -39,6 +39,8 @@ class Users(Base):
     password = Column(String(255))
 
     sessions = relationship("Session", back_populates="user", cascade="all, delete")
+    chats = relationship("Chats", secondary="chat_user", back_populates="participants")
+    messages = relationship("Messages", back_populates="sender")
 
 
 class Chats(Base):
@@ -48,6 +50,30 @@ class Chats(Base):
     title = Column(String(255), index=True)
     chats_type = Column(SAEnum(ChatType, name="chattype"), nullable=False, index=True)
 
+    messages = relationship("Messages", back_populates="chat", cascade="all, delete-orphan")
+    participants = relationship("Users", secondary="chat_user", back_populates="chats")
+
+class ChatUser(Base):
+    __tablename__ = "chat_user"
+
+    id = Column(Integer, primary_key=True, index=True)
+    chat_id = Column(Integer, ForeignKey("chats.id", ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+
+
+class Messages(Base):
+    __tablename__ = 'messages'
+
+    id = Column(Integer, primary_key=True, index=True)
+    chat_id = Column(Integer, ForeignKey("chats.id", ondelete="CASCADE"))
+    sender_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    text = Column(Text, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    is_read = Column(Boolean, default=False)
+
+    chat = relationship("Chats", back_populates="messages")
+    sender = relationship("Users", back_populates="messages")
+
 
 class Groups(Base):
     __tablename__ = 'groups'
@@ -55,10 +81,3 @@ class Groups(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), index=True)
     
-
-
-
-class Messages(Base):
-    __tablename__ = 'messages'
-
-    id = Column(Integer, primary_key=True, index=True)
