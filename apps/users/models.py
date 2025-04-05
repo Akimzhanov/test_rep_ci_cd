@@ -41,13 +41,14 @@ class Users(Base):
     sessions = relationship("Session", back_populates="user", cascade="all, delete")
     chats = relationship("Chats", secondary="chat_user", back_populates="participants")
     messages = relationship("Messages", back_populates="sender")
+    groups = relationship("Groups", secondary="group_user", back_populates="users")  
 
 
 class Chats(Base):
     __tablename__ = 'chats'
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(255), index=True)
+    title = Column(String(255), index=True,unique=True)
     chats_type = Column(SAEnum(ChatType, name="chattype"), nullable=False, index=True)
 
     messages = relationship("Messages", back_populates="chat", cascade="all, delete-orphan")
@@ -74,10 +75,23 @@ class Messages(Base):
     chat = relationship("Chats", back_populates="messages")
     sender = relationship("Users", back_populates="messages")
 
-
 class Groups(Base):
     __tablename__ = 'groups'
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), index=True)
-    
+    creator_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+
+    creator = relationship("Users", backref="created_groups")
+    users = relationship("Users", secondary="group_user", back_populates="groups")
+
+
+class GroupUser(Base):
+    __tablename__ = 'group_user'
+
+    id = Column(Integer, primary_key=True, index=True)
+    group_id = Column(Integer, ForeignKey("groups.id", ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+
+    group = relationship("Groups", overlaps="users,groups")
+    user = relationship("Users", overlaps="users,groups")

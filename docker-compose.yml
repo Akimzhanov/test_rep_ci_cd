@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: tg_chat
+      POSTGRES_USER: asyl
+      POSTGRES_PASSWORD: 1
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    container_name: fastapi_app
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql+asyncpg://asyl:1@db:5432/tg_chat
+      JWT_SECRET_KEY: "d32b8090091e42f8bea3fc8c10a5220ce87ea76ac23c3365f7e838f161b06c14b372f7d6454299292bf1abd59d0d110bf47c7e0ec1d30f8a4af1f846ff7dab6c"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    command: >
+      bash -c "
+        alembic upgrade head &&
+        uvicorn main:app --reload --host 0.0.0.0 --port 8000
+      "
+
+volumes:
+  postgres_data:

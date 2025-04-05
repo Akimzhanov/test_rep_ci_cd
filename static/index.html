@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный чат</title>
+</head>
+<body>
+    <h2>список чатов</h2>
+
+    <div id="chats" style="border: 1px solid black; padding: 5px; margin-bottom: 20px;">
+    </div>
+
+    <h2>Выбор чата</h2>
+    <form id="connectForm">
+        Chat ID: <input type="number" id="chatIdInput" required>
+        <button type="submit">Подключить</button>
+    </form>
+
+    <div id="chatSection" style="display:none; margin-top: 20px;">
+        <h2>Личный чат</h2>
+        <div id="chat" style="border: 1px solid black; height: 300px; overflow-y: scroll; padding: 5px;"></div>
+
+        <form id="chatForm" style="margin-top: 10px;">
+            <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off" required>
+            <button type="submit">Отправить</button>
+        </form>
+    </div>
+
+    <script>
+        const access_token = localStorage.getItem("access_token");
+        const refresh_token = localStorage.getItem("refresh_token");
+        let socket = null;
+        const chatsDiv = document.getElementById("chats");
+        const chatDiv = document.getElementById("chat");
+
+        if (!access_token || !refresh_token) {
+            alert("Please login first!");
+            window.location.href = "/static/login.html"; 
+        }
+
+        async function loadChats() {
+            const response = await fetch("http://localhost:8000/api/chats", {
+                headers: {
+                    Authorization: `Bearer ${access_token}`
+                }
+            });
+
+            const chats = await response.json();
+            chatsDiv.innerHTML = ""; 
+
+            chats.forEach(chat => {
+                if (chat.chats_type.toLowerCase() === "private") {
+                    const p = document.createElement("p");
+                    p.textContent = `ID: ${chat.id} | Название: ${chat.title}`;
+                    chatsDiv.appendChild(p);
+                }
+            });
+        }
+
+        loadChats();
+
+        document.getElementById("connectForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const chatId = document.getElementById("chatIdInput").value.trim();
+            if (chatId) {
+                connectWebSocket(chatId);
+            }
+        });
+
+        function connectWebSocket(chatId) {
+            if (socket) {
+                socket.close();
+            }
+
+            socket = new WebSocket(`ws://localhost:8000/ws/chats/${chatId}?access_token=${access_token}&refresh_token=${refresh_token}`);
+
+            socket.onopen = function () {
+                console.log("WebSocket connected");
+                document.getElementById("chatSection").style.display = "block";
+                chatDiv.innerHTML = "";
+            };
+
+            socket.onmessage = function (event) {
+                const data = JSON.parse(event.data);
+
+                if (Array.isArray(data)) {
+                    data.forEach(msg => {
+                        addMessageToChat(`${msg.timestamp}     [История] User ${msg.sender_id}: ${msg.text}`);
+                    });
+                } else if (data.type === "message") {
+                    addMessageToChat(`${data.timestamp}     [Новое собщение] User ${data.sender_id}: ${data.text}`);
+                } else if (data.type === "new_token") {
+                    localStorage.setItem("access_token", data.access_token);
+                    console.log("Token refreshed and updated");
+                }
+            };
+
+            socket.onclose = function () {
+                console.log("WebSocket closed");
+            };
+        }
+
+        document.getElementById("chatForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const message = document.getElementById("messageInput").value.trim();
+            if (socket && socket.readyState === WebSocket.OPEN && message) {
+                socket.send(JSON.stringify({
+                    type: "send",
+                    text: message
+                }));
+                document.getElementById("messageInput").value = "";
+            }
+        });
+
+        function addMessageToChat(text) {
+            const p = document.createElement("p");
+            p.textContent = text;
+            chatDiv.appendChild(p);
+            chatDiv.scrollTop = chatDiv.scrollHeight; 
+        }
+    </script>
+</body>
+</html>

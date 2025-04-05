@@ -38,3 +38,22 @@ class UserResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class GroupCreateSchema(BaseModel):
+    title: str
+    creator_id: int
+    user_ids: List[int]
+
+class GroupResponseSchema(BaseModel):
+    id: int
+    title: str
+    creator_id: int
+    users: List[UserResponse] = []  
+
+    class Config:
+        orm_mode = True
+
+
+class AddUserToGroupSchema(BaseModel):
+    user_id: int
