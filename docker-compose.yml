@@ -5,10 +5,12 @@ services:
     image: postgres:15
     container_name: postgres_db
     restart: always
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: tg_chat
-      POSTGRES_USER: asyl
-      POSTGRES_PASSWORD: 1
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
     ports:
       - "5433:5432"
     volumes:
@@ -20,9 +22,12 @@ services:
     restart: always
     depends_on:
       - db
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://asyl:1@db:5432/tg_chat
-      JWT_SECRET_KEY: "d32b8090091e42f8bea3fc8c10a5220ce87ea76ac23c3365f7e838f161b06c14b372f7d6454299292bf1abd59d0d110bf47c7e0ec1d30f8a4af1f846ff7dab6c"
+      DATABASE_URL: postgresql+asyncpg://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}
+      JWT_SECRET_KEY: ${SECRET_KEY}
+      HASH_ALGORITHM: ${HASH}
     ports:
       - "8000:8000"
     volumes:
@@ -30,8 +35,9 @@ services:
     command: >
       bash -c "
         alembic upgrade head &&
-        uvicorn main:app --reload --host 0.0.0.0 --port 8000
+        uvicorn main:app --reload --host 0.0.0.0 --port 8001
       "
 
 volumes:
   postgres_data:
+
