@@ -25,3 +25,4 @@ class Settings(BaseSettings):
 settings = Settings()
 
 print(1)
+print(2)
