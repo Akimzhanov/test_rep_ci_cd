@@ -29,7 +29,7 @@ services:
       JWT_SECRET_KEY: ${SECRET_KEY}
       HASH_ALGORITHM: ${HASH}
     ports:
-      - "8000:8000"
+      - "8001:8001"
     volumes:
       - .:/app
     command: >
